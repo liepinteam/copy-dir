@@ -13,39 +13,39 @@ npm install copy-dir
 Sync:
 
 ```js
-copyDir.sync(from, to[, filter]);
+copydir.sync(from, to[, filter]);
 ```
 
 Async:
 
 ```js
-copyDir(from, to, [filter, ]callback);
+copydir(from, to, [filter, ]callback);
 ```
 
 Filter is a function that you want to filter the path, then return true or false.
 
-It can use three arguments named _stat, _path, _file
+It can use three arguments named stat, filepath, filename
 
-* _stat: 'file' or 'directory', mark the file or path a file or directory
-* _path: the file path
-* _file: the file name
+* stat: 'file' or 'directory', mark the file or path a file or directory
+* filepath: the file path
+* filename: the file name
 
 # usage
 
 Sync:
 
 ```js
-var copyDir = require('copy-dir');
+var copydir = require('copy-dir');
 
-copyDir.sync('/a/b/c', '/a/b/e');
+copydir.sync('/a/b/c', '/a/b/e');
 ```
 
 Async:
 
 ```js
-var copyDir = require('copy-dir');
+var copydir = require('copy-dir');
 
-copyDir('/a/b/c', '/a/b/e', function(err){
+copydir('/a/b/c', '/a/b/e', function(err){
   if(err){
     console.log(err);
   } else {
@@ -62,18 +62,18 @@ Sync:
 
 ```js
 var path = require('path');
-var copyDir = require('copy-dir');
+var copydir = require('copy-dir');
 
-copyDir.sync('/a/b/c', '/a/b/e', function(_stat, _path, _file){
-  var stat = true;
-  if (_stat === 'file' && path.extname(_path) === '.html') {
-    // copy files, without .html
-    stat = false;
-  } else if (_stat === 'directory' && _file === '.svn') {
-    // copy directories, without .svn
-    stat = false;
+copydir.sync('/a/b/c', '/a/b/e', function(stat, filepath, filename){
+  var status = true;
+  if (stat === 'file' && path.extname(filepath) === '.html') {
+    // copy files, but without .html
+    status = false;
+  } else if (stat === 'directory' && filename === '.svn') {
+    // copy directories, but without .svn
+    status = false;
   }
-  return stat;
+  return status;
 }, function(err){
   console.log('ok')
 });
@@ -83,18 +83,10 @@ Async:
 
 ```js
 var path = require('path');
-var copyDir = require('copy-dir');
+var copydir = require('copy-dir');
 
-copyDir('/a/b/c', '/a/b/e', function(_stat, _path, _file){
-  var stat = true;
-  if (_stat === 'file' && path.extname(_path) === '.html') {
-    // copy files, without .html
-    stat = false;
-  } else if (_stat === 'directory' && _file === '.svn') {
-    // copy directories, without .svn
-    stat = false;
-  }
-  return stat;
+copyDir('/a/b/c', '/a/b/e', function(stat, filepath, filename){
+  //...
 });
 ```
 

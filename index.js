@@ -2,135 +2,209 @@ var fs = require('fs');
 var path = require('path');
 var mkdir = require('mkdir-p');
 
-var nodecopy = function (from, to, filter, callback) {
+function FileTools(from, to, filter) {
+  this.from = from;
+  this.to = to;
+  this.filter = filter;
+  return this;
+}
+
+FileTools.prototype.find =  function(callback) {
+  var that = this;
+  var filelist = {
+    dirs: [],
+    files: []
+  };
+  var getfiles = function(from, callback) {
+    fs.readdir(from, function(err, files) {
+      if (err) {
+        callback && callback(err);
+      } else {
+        var index = 0;
+        var loop = function() {
+          var filename = files[index];
+          var filepath = path.join(from, filename);
+          fs.lstat(filepath, function(err, stats) {
+            if (err) {
+              callback(err);
+            } else {
+              if (stats.isDirectory()) {
+                if (that.filter('directory', filepath, filename)) {
+                  filelist.dirs.push(filepath);
+                  getfiles(filepath, function(err) {
+                    checker(err);
+                  });
+                } else {
+                  checker();
+                }
+              } else if (stats.isFile()) {
+                if (that.filter('file', filepath, filename)) {
+                  filelist.files.push(filepath);
+                }
+                checker();
+              } else {
+                checker();
+              }
+            }
+          });
+        };
+        var checker = function(err) {
+          if(err) {
+            callback(err);
+          } else {
+            index++;
+            if(index === files.length) {
+              callback(null, filelist);
+            } else {
+              loop();
+            }
+          }
+        };
+        loop();
+      }
+    });
+  };
+  getfiles(this.from, callback);
+};
+
+FileTools.prototype.findSync =  function() {
+  var that = this;
+  var filelist = {
+    dirs: [],
+    files: []
+  };
+  var getfiles = function(from) {
+    var files = fs.readdirSync(from);
+    var index = 0;
+    var loop = function() {
+      var filename = files[index];
+      var filepath = path.join(from, filename);
+      var stats = fs.lstatSync(filepath);
+      if (stats.isDirectory()) {
+        if (that.filter('directory', filepath, filename)) {
+          filelist.dirs.push(filepath);
+          getfiles(filepath);
+        }
+      } else if (stats.isFile()) {
+        if (that.filter('file', filepath, filename)) {
+          filelist.files.push(filepath);
+        }
+      }
+      return checker();
+    };
+    var checker = function() {
+      index++;
+      if(index === files.length) {
+        return filelist;
+      } else {
+        return loop();
+      }
+    };
+    return loop();
+  };
+  return getfiles(this.from);
+};
+
+FileTools.prototype.mkdir = function(list, callback) {
+  var index = 0;
+  var loop = function() {
+    mkdir(list[index], function(err) {
+      if(err) {
+        callback(err);
+      } else {
+        index++;
+        if(index === list.length) {
+          callback(null);
+        } else {
+          loop();
+        }
+      }
+    });
+  };
+  loop();
+};
+
+FileTools.prototype.mkdirSync = function(list) {
+  var index = 0;
+  var loop = function() {
+    mkdir.sync(list[index]);
+    index++;
+    if(index === list.length) {
+      return true;
+    } else {
+      return loop();
+    }
+  };
+  return loop();
+};
+
+FileTools.prototype.copyfile = function(list, callback) {
+  var that = this;
+  var index = 0;
+  var loop = function() {
+    var filepath = list[index];
+    var rs = fs.createReadStream(filepath);
+    var ws = fs.createWriteStream(path.join(that.to, path.relative(that.from, filepath)));
+    rs.on('end', function() {
+      index++;
+      if(index === list.length) {
+        callback(null);
+      } else {
+        loop();
+      }
+    });
+    rs.pipe(ws);
+  };
+  loop();
+};
+
+FileTools.prototype.copyfileSync = function(list) {
+  var that = this;
+  var index = 0;
+  var loop = function() {
+    var filepath = list[index];
+    var distpath = path.join(that.to, path.relative(that.from, filepath));
+    fs.writeFileSync(distpath, fs.readFileSync(filepath, 'binary'), 'binary');
+    index++;
+    if(index === list.length) {
+      return true;
+    } else {
+      return loop();
+    }
+  };
+  return loop();
+};
+
+function copy(from, to, filter, callback) {
   if (typeof filter === 'function' && !callback) {
     callback = filter;
     filter = null;
   }
-  filter = filter || function (_stat, _path, _file) {
+  filter = filter || function(state, filepath, filename) {
     return true;
   };
-  var that = this,
-    copyFile = function (_from, _to, _callback) {
-      mkdir(path.dirname(_to), function (err) {
-        if (err) {
-          _callback(err);
-        } else {
-          fs.readFile(_from, {
-            encoding: 'binary'
-          }, function (err, data) {
-            if (err) {
-              _callback(err);
-            } else {
-              fs.writeFile(_to, data, {
-                encoding: 'binary'
-              }, function (err) {
-                if (err) {
-                  _callback(err);
-                } else {
-                  _callback(null);
-                }
-              });
-            }
-          });
-        }
-      });
-    };
-  fs.stat(from, function (err, stats) {
-    if (err) {
-      callback(err);
-    } else {
-      if (stats.isFile()) {
-        // from path is a file
-        copyFile(from, to, callback);
-      } else if (stats.isDirectory()) {
-        // from path is a directory
-        (function (_from, _to) {
-          var _args = arguments;
-          fs.readdir(_from, function (err, data) {
-            if (err) {
-              callback(err);
-            } else {
-              mkdir(_to, function (err) {
-                if (err) {
-                  _callback(err);
-                } else {
-                  (function () {
-                    var __args = arguments;
-                    if (data.length === 0) {
-                      if (_from === from) {
-                        callback(null);
-                      }
-                    } else {
-                      var _file = data.shift(),
-                        _src = path.join(_from, _file),
-                        _dist = path.join(_to, _file);
-                      fs.stat(_src, function (err, stats) {
-                        if (err) {
-                          callback(err);
-                        } else {
-                          if (stats.isFile()) {
-                            // from path is a file
-                            if (filter('file', _src, _file)) {
-                              copyFile(_src, _dist, __args.callee);
-                            } else {
-                              __args.callee();
-                            }
-                          } else if (stats.isDirectory()) {
-                            // from path is a directory
-                            if (filter('directory', _src, _file)) {
-                              _args.callee(_src, _dist);
-                            } else {
-                              __args.callee();
-                            }
-                          }
-                        }
-                      });
-                    }
-                  })(_from, _to);
-                }
-              });
-            }
-          });
-        })(from, to);
-      }
-    }
+  var tools = new FileTools(from, to, filter);
+  tools.find(function(err, list) {
+    var dirs = list.dirs.map(function(v) {
+      return path.join(tools.to, path.relative(tools.from, v));
+    });
+    tools.mkdir(dirs, function(err) {
+      tools.copyfile(list.files, callback);
+    });
   });
+}
+
+copy.sync = function(from, to, filter) {
+  filter = filter || function(state, filepath, filename) {
+    return true;
+  };
+  var tools = new FileTools(from, to, filter);
+  var list = tools.findSync();
+  var dirs = list.dirs.map(function(v) {
+    return path.join(tools.to, path.relative(tools.from, v));
+  });
+  tools.mkdirSync(dirs);
+  tools.copyfileSync(list.files);
 };
 
-nodecopy.sync = function (from, to, filter) {
-  if (!fs.existsSync(from)) {
-    throw new Error('from file not exists.');
-    return;
-  }
-  filter = filter || function (_stat, _path, _file) {
-    return true;
-  };
-  var stat = fs.statSync(from);
-  if (stat.isDirectory()) {
-    (function (_from, _to) {
-      var args = arguments,
-        list = fs.readdirSync(_from);
-      mkdir.sync(_to);
-      list.forEach(function (_file) {
-        var _src = path.join(_from, _file),
-          _dist = path.join(_to, _file),
-          stat = fs.statSync(_src),
-          extname = path.extname(_src);
-        if (stat.isFile()) {
-          if (filter('file', _src, _file)) {
-            fs.writeFileSync(_dist, fs.readFileSync(_src, 'binary'), 'binary');
-          }
-        } else if (stat.isDirectory()) {
-          if (filter('directory', _src, _file)) {
-            args.callee(_src, _dist);
-          }
-        }
-      });
-    })(from, to);
-  } else if (stat.isFile()) {
-    mkdir.sync(path.dirname(to));
-    fs.writeFileSync(to, fs.readFileSync(from, 'binary'), 'binary');
-  }
-};
-module.exports = nodecopy;
+module.exports = copy;

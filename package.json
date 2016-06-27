@@ -1,8 +1,8 @@
 {
   "author": {
-    "name": "Baolei Chen",
-    "email": "chenbl@liepin.com",
-    "url": "http://ued.liepin.com"
+    "name": "pillys",
+    "email": "pillys@163.com",
+    "url": "http://www.qque.com"
   },
   "dependencies": {},
   "description": "copy-dir",
@@ -22,11 +22,12 @@
     "url": "https://github.com/pillys/copy-dir",
     "type": "git"
   },
-  "version": "0.0.7",
+  "version": "0.1.0",
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/pillys/copy-dir/issues"
   },
   "homepage": "https://github.com/pillys/copy-dir",
-  "scripts": {}
+  "scripts": {},
+  "license": "MIT"
 }
