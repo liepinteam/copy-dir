@@ -1,6 +1,6 @@
 # copy-dir
 
-  easy used 'copy-dir', copy a file or directory to anothor path, when distpath or parent distpath not exist, it will create the directory automatically.
+  Easy used 'copy-dir' method, even use a filter, copy a file or directory to anothor path, when target path or parent target path not exists, it will create the directory automatically.
 
 # install
 
@@ -24,9 +24,9 @@ copydir(from, to, [filter, ]callback);
 
 Filter is a function that you want to filter the path, then return true or false.
 
-It can use three arguments named stat, filepath, filename
+It can use three arguments named state, filepath, filename
 
-* stat: 'file' or 'directory', mark the file or path a file or directory
+* state: 'file' or 'directory', mark the file or path a file or directory
 * filepath: the file path
 * filename: the file name
 
@@ -37,7 +37,7 @@ Sync:
 ```js
 var copydir = require('copy-dir');
 
-copydir.sync('/a/b/c', '/a/b/e');
+copydir.sync('/my/from/path', '/my/target/path');
 ```
 
 Async:
@@ -45,7 +45,7 @@ Async:
 ```js
 var copydir = require('copy-dir');
 
-copydir('/a/b/c', '/a/b/e', function(err){
+copydir('/my/from/path', '/my/target/path', function(err){
   if(err){
     console.log(err);
   } else {
@@ -64,18 +64,16 @@ Sync:
 var path = require('path');
 var copydir = require('copy-dir');
 
-copydir.sync('/a/b/c', '/a/b/e', function(stat, filepath, filename){
-  var status = true;
-  if (stat === 'file' && path.extname(filepath) === '.html') {
-    // copy files, but without .html
-    status = false;
-  } else if (stat === 'directory' && filename === '.svn') {
-    // copy directories, but without .svn
-    status = false;
+copydir.sync('/my/from/path', '/my/target/path', function(stat, filepath, filename){
+  if(stat === 'file' && path.extname(filepath) === '.html') {
+    return false;
   }
-  return status;
+  if (stat === 'directory' && filename === '.svn') {
+    return false;
+  }
+  return true;
 }, function(err){
-  console.log('ok')
+  console.log('ok');
 });
 ```
 
@@ -85,11 +83,17 @@ Async:
 var path = require('path');
 var copydir = require('copy-dir');
 
-copyDir('/a/b/c', '/a/b/e', function(stat, filepath, filename){
+copydir('/a/b/c', '/a/b/e', function(stat, filepath, filename){
+  //...
+}, function(err) {
   //...
 });
 ```
 
+## Questions?
 
+If you have any questions, please feel free to ask through [New Issue](https://github.com/pillys/copy-dir/issues/new).
 
+### License
 
+copy-dir is available under the terms of the [MIT](LICENSE) License.
