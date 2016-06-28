@@ -21,6 +21,7 @@ FileTools.prototype.find =  function(callback) {
         callback && callback(err);
       } else {
         var index = 0;
+        var filecount = files.length;
         var loop = function() {
           var filename = files[index];
           var filepath = path.join(from, filename);
@@ -53,14 +54,18 @@ FileTools.prototype.find =  function(callback) {
             callback(err);
           } else {
             index++;
-            if(index === files.length) {
+            if(index === filecount) {
               callback(null, filelist);
             } else {
               loop();
             }
           }
         };
-        loop();
+        if(filecount > 0) {
+          loop();
+        } else {
+          callback(null, filelist);
+        }
       }
     });
   };
@@ -76,6 +81,7 @@ FileTools.prototype.findSync =  function() {
   var getfiles = function(from) {
     var files = fs.readdirSync(from);
     var index = 0;
+    var filecount = files.length;
     var loop = function() {
       var filename = files[index];
       var filepath = path.join(from, filename);
@@ -94,26 +100,31 @@ FileTools.prototype.findSync =  function() {
     };
     var checker = function() {
       index++;
-      if(index === files.length) {
+      if(index === filecount) {
         return filelist;
       } else {
         return loop();
       }
     };
-    return loop();
+    if(filecount > 0) {
+      return loop();
+    } else {
+      return filelist;
+    }
   };
   return getfiles(this.from);
 };
 
 FileTools.prototype.mkdir = function(list, callback) {
   var index = 0;
+  var filecount = list.length;
   var loop = function() {
     mkdir(list[index], function(err) {
       if(err) {
         callback(err);
       } else {
         index++;
-        if(index === list.length) {
+        if(index === filecount) {
           callback(null);
         } else {
           loop();
@@ -121,33 +132,43 @@ FileTools.prototype.mkdir = function(list, callback) {
       }
     });
   };
-  loop();
+  if(list.length > 0) {
+    loop();
+  } else {
+    callback(null);
+  }
 };
 
 FileTools.prototype.mkdirSync = function(list) {
   var index = 0;
+  var filecount = list.length;
   var loop = function() {
     mkdir.sync(list[index]);
     index++;
-    if(index === list.length) {
+    if(index === filecount) {
       return true;
     } else {
       return loop();
     }
   };
-  return loop();
+  if(filecount > 0) {
+    return loop();
+  } else {
+    return true;
+  }
 };
 
 FileTools.prototype.copyfile = function(list, callback) {
   var that = this;
   var index = 0;
+  var filecount = list.length;
   var loop = function() {
     var filepath = list[index];
     var rs = fs.createReadStream(filepath);
     var ws = fs.createWriteStream(path.join(that.to, path.relative(that.from, filepath)));
     rs.on('end', function() {
       index++;
-      if(index === list.length) {
+      if(index === filecount) {
         callback(null);
       } else {
         loop();
@@ -155,24 +176,33 @@ FileTools.prototype.copyfile = function(list, callback) {
     });
     rs.pipe(ws);
   };
-  loop();
+  if(filecount > 0) {
+    loop();
+  } else {
+    callback(null);
+  }
 };
 
 FileTools.prototype.copyfileSync = function(list) {
   var that = this;
   var index = 0;
+  var filecount = list.length;
   var loop = function() {
     var filepath = list[index];
     var distpath = path.join(that.to, path.relative(that.from, filepath));
     fs.writeFileSync(distpath, fs.readFileSync(filepath, 'binary'), 'binary');
     index++;
-    if(index === list.length) {
+    if(index === filecount) {
       return true;
     } else {
       return loop();
     }
   };
-  return loop();
+  if(filecount > 0) {
+    return loop();
+  } else {
+    return true;
+  }
 };
 
 function copy(from, to, filter, callback) {
