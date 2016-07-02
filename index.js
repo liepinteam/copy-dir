@@ -217,7 +217,7 @@ function copy(from, to, filter, callback) {
   tools.find(function(err, list) {
     var dirs = list.dirs.map(function(v) {
       return path.join(tools.to, path.relative(tools.from, v));
-    });
+    }).concat([tools.to]);
     tools.mkdir(dirs, function(err) {
       tools.copyfile(list.files, callback);
     });
