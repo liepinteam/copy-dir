@@ -6,6 +6,7 @@ function FileTools(from, to, filter) {
   this.from = from;
   this.to = to;
   this.filter = filter;
+  this.mkdirSync([to])
   return this;
 }
 
@@ -233,8 +234,12 @@ copy.sync = function(from, to, filter) {
   var dirs = list.dirs.map(function(v) {
     return path.join(tools.to, path.relative(tools.from, v));
   });
-  tools.mkdirSync(dirs);
-  tools.copyfileSync(list.files);
+  try {
+    tools.mkdirSync(dirs);
+  } catch (e) {}
+  try {
+    tools.copyfileSync(list.files);
+  } catch (e) {}
 };
 
 module.exports = copy;
