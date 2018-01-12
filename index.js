@@ -6,7 +6,6 @@ function FileTools(from, to, filter) {
   this.from = from;
   this.to = to;
   this.filter = filter;
-  this.mkdirSync([to])
   return this;
 }
 
@@ -188,22 +187,11 @@ FileTools.prototype.copyfileSync = function(list) {
   var that = this;
   var index = 0;
   var filecount = list.length;
-  var loop = function() {
-    var filepath = list[index];
+
+  list.map(function(filepath){
     var distpath = path.join(that.to, path.relative(that.from, filepath));
     fs.writeFileSync(distpath, fs.readFileSync(filepath, 'binary'), 'binary');
-    index++;
-    if(index === filecount) {
-      return true;
-    } else {
-      return loop();
-    }
-  };
-  if(filecount > 0) {
-    return loop();
-  } else {
-    return true;
-  }
+  });
 };
 
 function copy(from, to, filter, callback) {
@@ -234,12 +222,8 @@ copy.sync = function(from, to, filter) {
   var dirs = list.dirs.map(function(v) {
     return path.join(tools.to, path.relative(tools.from, v));
   });
-  try {
-    tools.mkdirSync(dirs);
-  } catch (e) {}
-  try {
-    tools.copyfileSync(list.files);
-  } catch (e) {}
+  tools.mkdirSync(dirs);
+  tools.copyfileSync(list.files);
 };
 
 module.exports = copy;
