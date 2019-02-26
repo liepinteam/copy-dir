@@ -46,11 +46,8 @@ Async:
 var copydir = require('copy-dir');
 
 copydir('/my/from/path', '/my/target/path', function(err){
-  if(err){
-    console.log(err);
-  } else {
-    console.log('ok');
-  }
+  if (err) throw err;
+  console.log('ok');
 });
 ```
 
