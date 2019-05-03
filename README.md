@@ -1,6 +1,6 @@
 # copy-dir
 
-  Easy used 'copy-dir' method, even use a filter, copy a file or directory to anothor path, when target path or parent target path not exists, it will create the directory automatically.
+  Easy used 'copy-dir' lib, even use a filter, copy a file or directory to another path, when target path or parent target path not exists, it will create the directory automatically.
 
 # install
 
@@ -10,44 +10,61 @@ npm install copy-dir
 
 # grammar
 
-Sync:
+Sync Mode:
 
 ```js
-copydir.sync(from, to[, filter]);
+copydir.sync(from, to[, options]);
 ```
 
-Async:
+Async Mode:
 
 ```js
-copydir(from, to, [filter, ]callback);
+copydir(from, to, [options, ]callback);
 ```
 
-Filter is a function that you want to filter the path, then return true or false.
+[options]:
+
+```js
+  utimes: false,  // Boolean | Object, keep addTime or modifyTime if true
+  mode: false,    // Boolean | Number, keep file mode if true
+  cover: true,    // Boolean, cover if file exists
+  filter: true,   // Boolean | Function, file filter
+```
+
+filter is a function that you want to filter the path, then return true or false.
 
 It can use three arguments named state, filepath, filename
 
-* state: 'file' or 'directory', mark the file or path a file or directory
-* filepath: the file path
-* filename: the file name
+* state: String, 'file' / 'directory' / 'symbolicLink', marked as the file or path type
+* filepath: String, the file path
+* filename: String, the file name
 
 # usage
 
-Sync:
+Sync Mode:
 
 ```js
 var copydir = require('copy-dir');
 
-copydir.sync('/my/from/path', '/my/target/path');
+copydir.sync('/my/from/path', '/my/target/path', {
+  utimes: true,  // keep add time and modify time
+  mode: true,    // keep file mode
+  cover: true    // cover file when exists, default is true
+});
 ```
 
-Async:
+Async Mode:
 
 ```js
 var copydir = require('copy-dir');
 
-copydir('/my/from/path', '/my/target/path', function(err){
-  if (err) throw err;
-  console.log('ok');
+copydir('/my/from/path', '/my/target/path', {
+  utimes: true,  // keep add time and modify time
+  mode: true,    // keep file mode
+  cover: true    // cover file when exists, default is true
+}, function(err){
+  if(err) throw err;
+  console.log('done');
 });
 ```
 
@@ -55,33 +72,43 @@ copydir('/my/from/path', '/my/target/path', function(err){
 
 When you want to copy a directory, but some file or sub directory is not you want, you can do like this:
 
-Sync:
+Sync Mode:
 
 ```js
 var path = require('path');
 var copydir = require('copy-dir');
 
-copydir.sync('/my/from/path', '/my/target/path', function(stat, filepath, filename){
-  if(stat === 'file' && path.extname(filepath) === '.html') {
-    return false;
+copydir.sync('/my/from/path', '/my/target/path', {
+  filter: function(stat, filepath, filename){
+    // do not want copy .html files
+    if(stat === 'file' && path.extname(filepath) === '.html') {
+      return false;
+    }
+    // do not want copy .svn directories
+    if (stat === 'directory' && filename === '.svn') {
+      return false;
+    }
+    // do not want copy symbolicLink directories
+    if (stat === 'symbolicLink') {
+      return false;
+    }
+    return true;  // remind to return a true value when file check passed.
   }
-  if (stat === 'directory' && filename === '.svn') {
-    return false;
-  }
-  return true;
-}, function(err){
-  console.log('ok');
 });
+console.log('done');
 ```
 
-Async:
+Async Mode:
 
 ```js
 var path = require('path');
 var copydir = require('copy-dir');
 
-copydir('/a/b/c', '/a/b/e', function(stat, filepath, filename){
-  //...
+copydir('/a/b/c', '/a/b/e', {
+  filter: function(stat, filepath, filename) {
+    //...
+    return true;
+  }
 }, function(err) {
   //...
 });
