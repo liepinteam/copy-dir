@@ -12,11 +12,14 @@ function copydir(from, to, options, callback) {
   if (typeof options === 'function') {
     if(!callback) {
       callback = options;
-      options = {};
+      options = {
+        filter: function() { return true; }
+      };
+    } else {
+      options = {
+        filter: options
+      };
     }
-    options = {
-      filter: options
-    };
   }
   if(typeof callback !== 'function') {
     callback = function() {};
