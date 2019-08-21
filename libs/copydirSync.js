@@ -14,7 +14,7 @@ function copydirSync(from, to, options) {
       filter: options
     };
   }
-  if(typeof options === 'undefined') options = {}
+  if(typeof options === 'undefined') options = {};
   if(typeof options.cover === 'undefined') {
     options.cover = true;
   }
