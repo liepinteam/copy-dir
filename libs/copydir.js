@@ -38,7 +38,7 @@ function copydir(from, to, options, callback) {
         stats.isFile() ? 'file' :
         stats.isSymbolicLink() ? 'symbolicLink' :
         '';
-      var valid = options.filter(statsname, from, path.dirname(from), path.basename(from));
+      var valid = options.filter(statsname, path.dirname(from), path.basename(from));
       if (statsname === 'directory' || statsname === 'symbolicLink') {
         // Directory or SymbolicLink
         if(valid) {
