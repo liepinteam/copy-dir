@@ -114,6 +114,12 @@ copydir('/a/b/c', '/a/b/e', {
 });
 ```
 
+## Update Logs
+
+# 1.3.0
+
+Bug fix: filter function arguments incorrect, delete the third argument: dirname
+
 ## Questions?
 
 If you have any questions, please feel free to ask through [New Issue](https://github.com/pillys/copy-dir/issues/new).
