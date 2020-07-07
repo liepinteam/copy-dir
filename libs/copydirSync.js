@@ -78,7 +78,13 @@ function copyFromArraySync(files, from, to, options) {
 }
 
 function writeFileSync(from, to, options, stats) {
-  fs.writeFileSync(to, fs.readFileSync(from, 'binary'), 'binary');
+
+  if(typeof fs.copyFileSync === "function"){
+    fs.copyFileSync(from, to);
+  } else {
+    fs.writeFileSync(to, fs.readFileSync(from, 'binary'), 'binary');
+  }
+
   options.debug && console.log('>> ' + to);
   rewriteSync(to, options, stats);
 }

@@ -145,6 +145,20 @@ function utimes(f, mode, callback) {
 }
 
 function writeFile(from, to, options, stats, callback) {
+
+  if(typeof fs.copyFile === "function"){
+    fs.copyFile(from, to, function(err) {
+        if(err) {
+          callback(err);
+        } else {
+          options.debug && console.log('>> ' + to);
+          rewrite(to, options, stats, callback);
+        }
+      })
+
+    return;
+  }
+
   fs.readFile(from, 'binary', function(err, data) {
     if(err) {
       callback(err);
