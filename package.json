@@ -4,9 +4,7 @@
     "email": "pillys@163.com",
     "url": "https://www.qque.com"
   },
-  "dependencies": {
-    
-  },
+  "dependencies": {},
   "description": "copy-dir",
   "keywords": [
     "copy-dir",
@@ -27,6 +25,14 @@
     "url": "https://github.com/pillys/copy-dir/issues"
   },
   "homepage": "https://github.com/pillys/copy-dir",
-  "scripts": {},
-  "license": "MIT"
+  "scripts": {
+    "test": "jest",
+    "watch-test": "jest --watch"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^26.1.0",
+    "mkdirp": "^1.0.4",
+    "rimraf": "^3.0.2"
+  }
 }
